@@ -82,7 +82,8 @@ int previousDataLength = 0;
   const char* mqtt_server = "192.168.0.46";
   // MQTT_User and MQTT_Pass defined via platform.ini, external file, not uploaded to github
   PubSubClient mqttclient(wifiClient);
-  int8_t LastRed=0, LastGreen=0, LastBlue=0;
+  uint8_t LastRed=0, LastGreen=0, LastBlue=0;
+  unsigned long lastSend=0; 
 #endif
 
 // connect to wifi – returns true if successful or false if not
@@ -199,7 +200,7 @@ void onDmxFrame(uint16_t universe, uint16_t thelength, uint8_t sequence, uint8_t
        leds[i].blue  = byte(data[2]);
       } */
       #if defined(UseMQTT)
-          LEDUpdate(data[0], data[1], data[2]);
+          LEDUpdate(byte(data[0]), byte(data[1]), byte(data[2]));
       #endif
       
       for (int i = 0 ; i < numLedinRing ; i++) {
@@ -247,7 +248,7 @@ void onDmxFrame(uint16_t universe, uint16_t thelength, uint8_t sequence, uint8_t
     // read universe and put into the right part of the display buffer
     // first LED is undercab color used for outside ring
       #if defined(UseMQTT)
-        LEDUpdate(data[0], data[1], data[2]);
+        LEDUpdate(byte(data[0]), byte(data[1]), byte(data[2]));
       #endif
 
       for (int i = 0; i < numLedinRing; i++)
@@ -382,17 +383,25 @@ void loop()
 
 #if defined(UseMQTT)
 
-void LEDUpdate(int8_t red, int8_t green, int8_t blue) {
-  if ((red != LastRed) && (blue != LastBlue) && (green != LastGreen)) {
-    if ((red != 0) && (blue != 0) && (green !=0)) {
-      LastRed=red;
-      LastBlue=blue;
-      LastGreen=green;
+void LEDUpdate(uint8_t red, uint8_t green, uint8_t blue) {
+ // uint32_t ledlasttime=millis();
 
-      String message = "{\"color\":{\"r\":"+String(red)+",\"g\":"+String(green)+",\"b\":"+String(blue)+"}, \"state\":\"on\"}";
-      MQTT_Send("zigbee2mqtt/LED/set", message);   
+  //if ((lastSend+1000) < ledlasttime) {
+   //     String message = "{\"color\":{\"r\":"+String(red)+",\"g\":"+String(green)+",\"b\":"+String(blue)+"}, \"state\":\"on\"}";
+   //     MQTT_Send("Haus/LED/debug", message);  
+
+   // lastSend = ledlasttime;
+    if ((red != LastRed) || (blue != LastBlue) || (green != LastGreen)) {
+      if ((red != 0) || (blue != 0) || (green !=0)) {
+        LastRed=red;
+        LastBlue=blue;
+        LastGreen=green;
+
+        String message = "{\"color\":{\"r\":"+String(red)+",\"g\":"+String(green)+",\"b\":"+String(blue)+"}, \"state\":\"on\"}";
+        MQTT_Send("zigbee2mqtt/LED/set", message);   
+      }
     }
-  }
+  //}  
 }
 
 

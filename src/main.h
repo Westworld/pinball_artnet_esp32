@@ -5,4 +5,4 @@ void MQTT_Send(char const * topic, float value);
 void MQTT_Send(char const * topic, String value);
 void UDBDebug(const char * message);
 void UDBDebug(String message);
-void LEDUpdate(int8_t red, int8_t green, int8_t blue);
+void LEDUpdate(uint8_t red, uint8_t green, uint8_t blue);
